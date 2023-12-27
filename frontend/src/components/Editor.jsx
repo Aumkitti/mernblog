@@ -1,7 +1,7 @@
 import ReactQuill from 'react-quill'
 import 'react-quill/dist/quill.snow.css';
 
-const Editor = (value, onChange) => {
+const Editor = ({value, onChange}) => {
     const toolbarOptions = [
         ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
         ['blockquote', 'code-block'],
@@ -26,7 +26,10 @@ const Editor = (value, onChange) => {
     }
   return (
     <div className='content'>
-        <ReactQuill theme="snow" value={value} modules={modules} />;
+        <ReactQuill theme="snow" 
+        value={value} 
+        modules={modules} 
+        onChange={onChange} />;
     </div>
   )
 }

@@ -1,18 +1,44 @@
-import React from 'react'
+import {useState, useContext, useEffect} from 'react'
+import { UserContext } from '../context/UserContext';
+import { Link, useParams } from 'react-router-dom';
+import { format } from 'date-fns';
+const baseURL = import.meta.env.VITE_BASE_URL;
 
 const PostPage = () => {
+  const [postInfo, setPostInfo] = useState(null);
+  const {userInfo} = useContext(UserContext);
+  const {id} = useParams();
+  useEffect(()=>{
+    fetch(`${baseURL}/post/${id}`).then((response) => {
+      response.json().then((postInfo) => {
+        setPostInfo(postInfo)
+      })
+    })
+  }, [id]);
+  if (!postInfo) return "";
+
   return (
     <div className='post-page'>
         <h1>
-        ถึงแม้เป็นคู่แข่งกันโดยตรงในวงการสตรีมมิ่ง แต่เมื่อรายการไม่ได้ซ้อนทับกัน ดีลธุรกิจก็เกิดขึ้นได้เสมอ ล่าสุด Netflix เซ็นสัญญากับ Disney ซื้อไลเซนส์รายการในเครือ Disney รวม 14 รายการไปฉายบน Netflix ตามกรอบเวลา 18 เดือน
+        {postInfo.title}
         </h1>
-        <time>13 December 2023 - 11:26</time>
-        <div className='author'>Aum</div>
+        <time>{format(new Date(postInfo.createdAt), "dd MMMM yyyy HH:MM")}</time>
+        <div className='author'>By @{postInfo.author.username}</div>
+        {userInfo?.id === postInfo.author._id &&(
+          <div className='edit-row' >
+            <Link className='edit-btn' to={`/edit/${postInfo._id}`}>
+            <svg data-slot="icon" fill="none" stroke-width="1.5" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12a7.5 7.5 0 0 0 15 0m-15 0a7.5 7.5 0 1 1 15 0m-15 0H3m16.5 0H21m-1.5 0H12m-8.457 3.077 1.41-.513m14.095-5.13 1.41-.513M5.106 17.785l1.15-.964m11.49-9.642 1.149-.964M7.501 19.795l.75-1.3m7.5-12.99.75-1.3m-6.063 16.658.26-1.477m2.605-14.772.26-1.477m0 17.726-.26-1.477M10.698 4.614l-.26-1.477M16.5 19.794l-.75-1.299M7.5 4.205 12 12m6.894 5.785-1.149-.964M6.256 7.178l-1.15-.964m15.352 8.864-1.41-.513M4.954 9.435l-1.41-.514M12.002 12l-3.75 6.495"></path>
+            </svg>
+            Edit Post
+            </Link>
+          </div>
+        )}
         <div className='image'>
-        <img src="https://www.blognone.com/sites/default/files/externals/b6e92e34a7660b17840c7a959c673eb7.jpg" alt="" />
+        <img src={`${baseURL}/${postInfo.cover}`} alt="" />
         </div>
-        <div className='content'>
-        ทิศทางของธุรกิจสตรีมมิ่งยุคก่อนหน้านี้ แข่งกันที่รายการเอ็กซ์คลูซีฟของแต่ละแพลตฟอร์มอย่างดุเดือด แต่เมื่อช่วงหลังการแข่งขันลดระดับความรุนแรงลง (บาดเจ็บกันทุกฝ่าย) บริษัทสตรีมมิ่งจึงกลับมาขายไลเซนส์รายการให้คู่แข่ง เพื่อหารายได้เสริมทางอื่นบ้าง แบบเดียวกับที่เคยทำกันในวงการสตรีมมิ่งยุคแรกๆ
+        <div className='content' dangerouslySetInnerHTML={{__html: postInfo.content}}>
+        
         </div>
     </div>
   )
