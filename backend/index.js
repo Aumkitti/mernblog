@@ -54,11 +54,11 @@ app.post("/login", async(req,res)=>{
     const isMatchedPassword = bcrypt.compareSync(password, userDoc.password); //เช็ค พาส ที่ได้จากฟอร์ม และในฐานข้อมูลว่าเหมือนกันไหม
     if(isMatchedPassword){
         //logged in
-        jwt.sign({username, id: userDoc}, secret, {}, (err, token)=>{
+        jwt.sign({ username, id: userDoc._id }, secret, {}, (err, token)=>{
             if(err) throw err;
             //Save data in cookie
             res.cookie("token", token).json({
-                id: userDoc.id,
+                id: userDoc._id,
                 username,
             });
         });
@@ -126,7 +126,7 @@ app.put("/post/:id",uploadMiddlewate.single("file"), async (req, res)=>{
         if(err) throw err;
         const {title, summary, content} = req.body;
         const postDoc = await Post.findById(id);
-        const isAuthor = JSON.stringify(postDoc.author._id) === JSON.stringify(info.id._id)
+        const isAuthor = JSON.stringify(postDoc.author) === JSON.stringify(info.id)
         if(!isAuthor){
             return res.status(400).json("You are not the author")
         }
@@ -141,7 +141,7 @@ app.put("/post/:id",uploadMiddlewate.single("file"), async (req, res)=>{
         )
 
 
-        await postDoc.update({
+        await postDoc.updateOne({
             title,
             summary,
             content,
@@ -150,6 +150,49 @@ app.put("/post/:id",uploadMiddlewate.single("file"), async (req, res)=>{
         });
         res.json(postDoc);
     });
+});
+
+
+// ลบโพสต์
+app.delete("/post/:id", async (req, res) => {
+    const postId = req.params.id;
+    const { token } = req.cookies;
+
+    try {
+        if (!token) {
+            return res.status(401).json({ message: 'ไม่ได้รับอนุญาต: ไม่มี Token' });
+        }
+
+        jwt.verify(token, secret, async (err, info) => {
+            if (err) {
+                return res.status(401).json({ message: 'ไม่ได้รับอนุญาต: Token ไม่ถูกต้อง' });
+            }
+
+            const postDoc = await Post.findById(postId);
+
+            if (!postDoc) {
+                return res.status(404).json({ message: 'ไม่พบโพสต์' });
+            }
+
+            const isAuthor = JSON.stringify(postDoc.author._id) === JSON.stringify(info.id._id);
+
+            if (!isAuthor) {
+                return res.status(401).json({ message: 'คุณไม่ใช่ผู้เขียน' });
+            }
+
+            // ลบโพสต์จากฐานข้อมูล
+            await postDoc.remove();
+
+            // การลบไฟล์ภาพปกที่เกี่ยวข้อง
+            const coverPath = path.join(__dirname, "uploads", postDoc.cover);
+            fs.unlinkSync(coverPath);
+
+            res.json({ message: 'ลบโพสต์เรียบร้อยแล้ว' });
+        });
+    } catch (error) {
+        console.error('เกิดข้อผิดพลาดในการลบโพสต์', error);
+        res.status(500).json({ message: 'ข้อผิดพลาดภายในเซิร์ฟเวอร์' });
+    }
 });
 
 

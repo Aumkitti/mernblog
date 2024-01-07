@@ -149,3 +149,22 @@ div.post-page a.edit-btn{
 a svg {
   height: 20px;
 }
+
+div.delete-row{
+  margin-bottom: 20px;
+}
+div.post-page button.delete-btn{
+  background-color: #000;
+  gap: 5px;
+  color: #ffffff;
+  padding: 5px;
+  border-radius: 10px;
+  text-decoration: none;
+  max-width: 100px; /* ปรับความยาวของปุ่มตามที่คุณต้องการ */
+  overflow: hidden; /* ลดการแสดงข้อความที่เกินขอบของปุ่ม */
+  margin: auto; /* จัดตำแหน่งตรงกลาง */
+}
+
+div.post-page button.delete-btn svg {
+  height: 20px;
+}
